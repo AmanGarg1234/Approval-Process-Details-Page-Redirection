@@ -1,0 +1,16 @@
+public class OppApprovalProcessRedirectionCtr {
+    
+    public OppApprovalProcessRedirectionCtr(){}
+    
+    public PageReference urlRedirection() {
+        String opportunityId = ApexPages.currentPage().getParameters().get('id');
+        List<ProcessInstanceWorkitem> workitems = [SELECT Id, ProcessInstanceId, ProcessInstance.TargetObjectId FROM
+                                                   ProcessInstanceWorkitem WHERE ProcessInstance.TargetObjectId = :opportunityId AND actorId =: UserInfo.getUserId() LIMIT 1];
+        
+        String instanceUrl = Label.Salesforce_Instance_URL;
+        String url = workitems.size() > 0 ? instanceUrl +'/lightning/r/ProcessInstanceWorkitem/' + workitems[0].Id + '/view'  : instanceUrl +'/lightning/r/ProcessInstanceWorkitem/' + opportunityId;
+        PageReference page = new PageReference(url);
+        page.setRedirect(true);
+        return page;
+    }
+}
