@@ -1,0 +1,55 @@
+@isTest
+private class OppApprovalProcessRedirectionCtrTest {
+    
+    
+    @isTest
+    static void testUrlRedirection() {
+        
+        Opportunity opp = new Opportunity(Name='Test Opp', StageName='Prospecting', Payment_Terms__c = 'Prepaid before Invoice', Payment_Term_Reason__c = 'xyz',  CloseDate=Date.today(), Amount=1000.0);
+        insert opp;
+        User approver = new User(Username='testuserws@gmail.com', FirstName = 'Test',LanguageLocaleKey = 'en_US', IsActive = true, UserRoleId = UserInfo.getUserRoleId(),
+                                 LastName = 'User', Email='testuserws@gmail.com', Alias='testusew', TimeZoneSidKey = 'America/Los_Angeles', LocaleSidKey = 'en_US' , EmailEncodingKey = 'UTF-8',
+                                 CommunityNickname='testuser', ProfileId=UserInfo.getProfileId());
+        
+        System.runAs ( new User(Id = UserInfo.getUserId()) ) {
+            insert approver;
+        }
+         
+        Approval.ProcessSubmitRequest req = new Approval.ProcessSubmitRequest();
+        req.setComments('Approve.');
+        req.setNextApproverIds(new Id[] {UserInfo.getUserId()});
+        req.setObjectId(opp.Id);
+        req.setSubmitterId(UserInfo.getUserId());
+        req.setProcessDefinitionNameOrId('Opportunity_Record_Sent_for_Approval');
+        Approval.ProcessResult result = Approval.process(req);
+        
+        Approval.ProcessWorkitemRequest req2 =  new Approval.ProcessWorkitemRequest();
+        req2.setComments('Approving request.');
+        req2.setAction('Approve');
+        req2.setNextApproverIds(new Id[] {UserInfo.getUserId()});
+        
+        req2.setWorkitemId(result.getNewWorkitemIds().get(0));
+      
+        Approval.ProcessResult result2 =  Approval.process(req2);
+        
+        
+        
+        List<ProcessInstance> processIns =  [SELECT Id FROM ProcessInstance WHERE targetobjectid =: opp.id LIMIT 1];
+        
+        List<ProcessInstanceWorkitem> piw =  [SELECT Id FROM ProcessInstanceWorkitem WHERE ProcessInstanceId =: processIns[0].Id LIMIT 1];
+       
+        
+        //Create instance of the controller and call the urlRedirection method
+        Test.startTest();
+        OppApprovalProcessRedirectionCtr controller = new OppApprovalProcessRedirectionCtr();
+        Test.setCurrentPageReference(new PageReference('/apex/testPage?id=' + opp.Id));
+        PageReference redirectPage = controller.urlRedirection();
+        Test.stopTest();
+        
+        
+        //Assert that the redirectPage URL is correct
+        String expectedUrl = Label.Salesforce_Instance_URL + '/lightning/r/ProcessInstanceWorkitem/' + opp.Id;
+        System.assertEquals(expectedUrl, redirectPage.getUrl());
+    }
+    
+}
