@@ -1,0 +1,9 @@
+Dear {!Opportunity.OwnerFullName},<br/><br/>
+Your approval has been requested for the below Opportunity Payment Terms:<br/><br/>
+Opportunity Name : <a href="{!Opportunity.Link}">{!Opportunity.Name}</a> <br/>
+Opportunity Owners Name : {!Opportunity.OwnerFullName}<br/>
+Opportunity.Amount : {!Opportunity.Amount} <br/><br/>
+
+This Opportunity is pending your approval on its Payment Terms. Please approve or reject this at your earliest convenience here: <a href="{!$Label.Salesforce_Instance_URL}/apex/OpportunityApprovalProcessRedirection?id={!Opportunity.Id}">{!Opportunity.Name}</a><br/><br/>
+
+<p>Thanks!</p><br/>
